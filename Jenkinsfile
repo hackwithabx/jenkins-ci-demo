@@ -24,14 +24,14 @@ pipeline {
 
         stage('Package') {
             parallel {
-                stage('CreateJarfile') {
+                stage('CreateJarFile') {
                     steps {
                         container(name: 'maven') {
                             sh 'mvn package -DskipTests'
                         }
                     }
                 }
-                stage('OCIImageBnP') {
+                stage('OCIImageBuildAndPublish') {
                     steps {
                         container(name: 'kaniko') {
                             sh '''
@@ -41,7 +41,7 @@ pipeline {
                             --insecure \
                             --skip-tls-verify \
                             --cache=true \
-                            --destination=docker.io/abxabhishekdocker/dso-demo
+                            --destination=docker.io/abxabhishekdocker/dso-demo:latest
                             '''
                         }
                     }
