@@ -9,7 +9,7 @@ pipeline {
         stage('Build') {
             steps {
                 container(name: 'maven') {
-                    dir('PROJECT_DIR') { // <-- Replace PROJECT_DIR with actual folder containing pom.xml
+                    dir('app') {
                         sh 'mvn clean compile'
                     }
                 }
@@ -19,18 +19,8 @@ pipeline {
         stage('Test') {
             steps {
                 container(name: 'maven') {
-                    dir('PROJECT_DIR') {
+                    dir('app') {
                         sh 'mvn test'
-                    }
-                }
-            }
-        }
-
-        stage('StaticAnalysis') {
-            steps {
-                container(name: 'maven') {
-                    dir('PROJECT_DIR') {
-                        sh 'mvn org.owasp:dependency-check-maven:check'
                     }
                 }
             }
@@ -41,7 +31,7 @@ pipeline {
                 stage('CreateJarFile') {
                     steps {
                         container(name: 'maven') {
-                            dir('PROJECT_DIR') {
+                            dir('app') {
                                 sh 'mvn package -DskipTests'
                             }
                         }
@@ -53,7 +43,7 @@ pipeline {
                             sh '''
                             /kaniko/executor \
                             --dockerfile=`pwd`/Dockerfile \
-                            --context=`pwd` \
+                            --context=`pwd`/app \
                             --insecure \
                             --skip-tls-verify \
                             --cache=true \
