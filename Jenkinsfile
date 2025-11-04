@@ -9,7 +9,9 @@ pipeline {
         stage('Build') {
             steps {
                 container(name: 'maven') {
-                    sh 'mvn clean compile'
+                    dir('PROJECT_DIR') { // <-- Replace PROJECT_DIR with actual folder containing pom.xml
+                        sh 'mvn clean compile'
+                    }
                 }
             }
         }
@@ -17,7 +19,19 @@ pipeline {
         stage('Test') {
             steps {
                 container(name: 'maven') {
-                    sh 'mvn test'
+                    dir('PROJECT_DIR') {
+                        sh 'mvn test'
+                    }
+                }
+            }
+        }
+
+        stage('StaticAnalysis') {
+            steps {
+                container(name: 'maven') {
+                    dir('PROJECT_DIR') {
+                        sh 'mvn org.owasp:dependency-check-maven:check'
+                    }
                 }
             }
         }
@@ -27,7 +41,9 @@ pipeline {
                 stage('CreateJarFile') {
                     steps {
                         container(name: 'maven') {
-                            sh 'mvn package -DskipTests'
+                            dir('PROJECT_DIR') {
+                                sh 'mvn package -DskipTests'
+                            }
                         }
                     }
                 }
