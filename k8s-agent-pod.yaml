@@ -1,14 +1,23 @@
 apiVersion: v1
 kind: Pod
 metadata:
-  name: jenkins-agent
+  labels:
+    app: jenkins-agent
 spec:
+  serviceAccountName: jenkins
   containers:
+
+    # ✅ MAVEN CONTAINER (Build Java project)
     - name: maven
       image: maven:3.9.1-eclipse-temurin-17
       command:
         - cat
       tty: true
+      volumeMounts:
+        - name: maven-repo
+          mountPath: /root/.m2
+
+    # ✅ KANIKO (Build Docker Image)
     - name: kaniko
       image: gcr.io/kaniko-project/executor:v1.6.0-debug
       imagePullPolicy: Always
@@ -19,7 +28,21 @@ spec:
       volumeMounts:
         - name: jenkins-docker-cfg
           mountPath: /kaniko/.docker
+
+    # ✅ SAST SCAN CONTAINER (shiftleft / slscan)
+    - name: slscan
+      image: shiftleft/sast-scan:v2.1.2
+      imagePullPolicy: Always
+      command:
+        - cat
+      tty: true
+
   volumes:
+    # ✅ Maven Cache Volume
+    - name: maven-repo
+      emptyDir: {}
+
+    # ✅ Docker Registry Secret for Kaniko
     - name: jenkins-docker-cfg
       projected:
         sources:
